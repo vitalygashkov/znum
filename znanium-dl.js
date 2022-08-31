@@ -5,8 +5,11 @@ const { joinImages } = require('join-images');
 const prompt = require('prompt');
 const puppeteer = require('puppeteer');
 const cliProgress = require('cli-progress');
+const PDFDocument = require('pdfkit');
+const { existsSync, createWriteStream } = require('node:fs');
 
-const COOKIES_PATH = 'cookies.txt';
+const COOKIES_PATH = join(process.cwd(), 'cookies.txt');
+const DOWNLOADS_DIR = join(process.cwd(), 'downloads');
 
 const getTextBetween = (source, startStr, endStr) =>
   source?.split(startStr)?.[1]?.split(endStr)?.[0];
@@ -86,30 +89,52 @@ const fetchPage = async (contentId, pageNumber, cookie) => {
   const { url } = await prompt.get(['url']);
   const contentId = getTextBetween(url, 'id=', '&');
 
-  console.log('Скачивание...');
+  console.log('Скачивание изображений...');
   const pagesCount = await fetchPagesCount(url, cookieString);
-  const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
-  progressBar.start(pagesCount, 0);
+  const downloadProgress = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+  downloadProgress.start(pagesCount, 0);
   let error = '';
   let currentPage = 1;
+
+  const workDir = join(DOWNLOADS_DIR, contentId);
   do {
     const { statusText, slices } = await fetchPage(contentId, currentPage, cookieString);
     if (statusText !== 'OK') {
       error = statusText;
       console.error(`Страница ${currentPage}. ${statusText}`);
     } else {
-      const folderPath = join(process.cwd(), 'downloads', contentId, 'images');
       const sliceNames = slices.map((_, i) => `page_${currentPage}_${i}.png`);
-      const slicePaths = sliceNames.map((name) => join(folderPath, name));
-      await fs.mkdir(folderPath, { recursive: true });
+      const slicePaths = sliceNames.map((name) => join(workDir, name));
+      await fs.mkdir(workDir, { recursive: true });
       for (let i = 0; i < slices.length; i++) await fs.writeFile(slicePaths[i], slices[i]);
       const image = await joinImages(slicePaths);
-      image.toFile(join(folderPath, `page_${currentPage}.png`));
+      image.toFile(join(workDir, `page_${currentPage}.png`));
       for (let i = 0; i < slices.length; i++) await fs.unlink(slicePaths[i]);
-      progressBar.update(currentPage);
+      downloadProgress.update(currentPage);
     }
     currentPage++;
   } while (!error);
-  progressBar.stop();
+  downloadProgress.stop();
   console.log('Скачивание завершено');
+
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  console.log('Конвертирование в PDF...');
+  const pdfProgress = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+  pdfProgress.start(pagesCount, 0);
+  const pdfPath = join(DOWNLOADS_DIR, `${contentId}.pdf`);
+  const doc = new PDFDocument({ autoFirstPage: false });
+  doc.pipe(createWriteStream(pdfPath));
+  for (let i = 1; i <= pagesCount; i++) {
+    const pageImagePath = join(workDir, `page_${i}.png`);
+    if (!existsSync(pageImagePath)) break;
+    const pageImage = doc.openImage(pageImagePath);
+    doc.addPage({ size: [pageImage.width, pageImage.height] });
+    doc.image(pageImage, 0, 0);
+    pdfProgress.update(i);
+  }
+  await fs.rm(workDir, { recursive: true, force: true });
+  doc.end();
+
+  pdfProgress.stop();
+  console.log('Конвертирование завершено');
 })();
