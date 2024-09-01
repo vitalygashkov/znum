@@ -16,7 +16,6 @@ export const loadCookies = async () => {
 };
 
 export const saveCookies = async () => {
-  console.log(cookieJar.toJSON());
   const cookies = await cookieJar.getCookies(DEFAULT_URL).then((cookies) => cookies.map((cookie) => cookie.toString()));
   await writeFile(cookiePath, JSON.stringify(cookies, null, 2));
 };
@@ -24,12 +23,12 @@ export const saveCookies = async () => {
 export const fetch = async (resource, options) => {
   const response = await gotScraping({
     url: resource,
-    // useHeaderGenerator: true,
-    // headerGeneratorOptions: {
-    //   browserListQuery: 'last 2 Chrome versions',
-    //   operatingSystems: [process.platform === 'win32' ? 'windows' : 'macos'],
-    // },
-    // http2: true,
+    useHeaderGenerator: true,
+    headerGeneratorOptions: {
+      browserListQuery: 'last 2 Chrome versions',
+      operatingSystems: [process.platform === 'win32' ? 'windows' : 'macos'],
+    },
+    http2: true,
     cookieJar,
     ...options,
   });

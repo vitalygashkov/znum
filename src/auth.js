@@ -1,7 +1,7 @@
 import prompt from 'prompt';
 import { DEFAULT_URL } from './constants.js';
 import { getTextBetween } from './utils.js';
-import { cookieJar, fetch, loadCookies, saveCookies } from './http.js';
+import { fetch, loadCookies, saveCookies } from './http.js';
 
 const openLoginPage = async () => {
   const response = await fetch('https://znanium.ru/site/login');
@@ -36,11 +36,7 @@ export const login = async (username, password) => {
   const answer = username && password ? { username, password } : await prompt.get(['username', 'password']);
   console.log('Авторизация...');
   const { csrfToken } = await openLoginPage();
-  console.log(cookieJar.toJSON());
-  const response = await sendCredentials(answer.username, answer.password, csrfToken);
-  console.log(response.status);
-  console.log(Array.from(response.headers.entries()));
-  console.log(cookieJar.toJSON());
+  await sendCredentials(answer.username, answer.password, csrfToken);
   await openHomePage();
   await saveCookies();
 };

@@ -9,7 +9,7 @@ import { DELAY_BETWEEN_REQUESTS } from './constants.js';
 
 export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, cryptoKeyId }) => {
   let error = '';
-  let currentPage = 11;
+  let currentPage = 1;
   const pages = [];
   const downloadProgress = new SingleBar({}, Presets.shades_classic);
   downloadProgress.start(pagesCount - currentPage + 1, 0);
