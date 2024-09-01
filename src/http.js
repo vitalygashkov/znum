@@ -1,12 +1,16 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { gotScraping } from 'got-scraping';
+import { setGlobalDispatcher } from 'undici';
+import { CookieAgent } from 'http-cookie-agent/undici';
 import { Cookie, CookieJar } from 'tough-cookie';
+import { gotScraping } from 'got-scraping';
 import { DEFAULT_URL } from './constants.js';
 
 export const cookiePath = join(process.cwd(), 'cookies.json');
 export const cookieJar = new CookieJar();
+export const cookieAgent = new CookieAgent({ cookies: { jar: cookieJar } });
+setGlobalDispatcher(cookieAgent);
 
 export const loadCookies = async () => {
   if (!existsSync(cookiePath)) return false;
