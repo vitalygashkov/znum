@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "main": "znum.js",
+  "type": "module",
   "bin": {
     "znum": "znum.js"
   },
@@ -15,10 +16,11 @@
   "license": "ISC",
   "dependencies": {
     "cli-progress": "^3.12.0",
+    "got-scraping": "^4.0.6",
     "join-images": "^1.1.5",
     "pdfkit": "^0.15.0",
     "prompt": "^1.3.0",
     "sharp": "^0.32.0",
-    "undici": "^6.19.8"
+    "tough-cookie": "^4.1.4"
   }
 }
