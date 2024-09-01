@@ -5,6 +5,7 @@ import { joinImages } from 'join-images';
 import { SingleBar, Presets } from 'cli-progress';
 import { createToken } from './token.js';
 import { fetchPage } from './api.js';
+import { DELAY_BETWEEN_REQUESTS } from './constants.js';
 
 export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, cryptoKeyId }) => {
   let error = '';
@@ -30,7 +31,8 @@ export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, c
       pages.push(output);
       downloadProgress.update(currentPage);
     }
-    await setTimeout(1000);
+    // Ожидание между запросами из-за ограничения частоты запросов (Rate Limiting) на стороне сервера (при превышении ошибка 503)
+    await setTimeout(DELAY_BETWEEN_REQUESTS);
     currentPage++;
   } while (!error && currentPage <= pagesCount);
   downloadProgress.stop();
