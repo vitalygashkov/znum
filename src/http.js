@@ -34,6 +34,14 @@ export const fetch = async (resource, options) => {
     },
     http2: true,
     cookieJar,
+	timeout: {
+      request: 400000
+    },
+    retry: {
+      limit: 5,
+      methods: ['GET', 'POST'],
+      statusCodes: [408, 429, 500, 502, 503, 504],
+    },
     ...options,
   });
   const headers = new Headers();
