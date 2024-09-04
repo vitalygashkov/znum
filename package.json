@@ -1,11 +1,12 @@
 {
   "name": "znum",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "Vitaly Gashkov <vitalygashkov@vk.com>",
   "description": "Save books from Znanium for offline reading",
   "license": "AGPL-3.0",
-  "main": "znum.js",
   "type": "module",
+  "main": "znum.js",
+  "types": "znum.d.ts",
   "bin": {
     "znum": "znum.js"
   },
@@ -24,5 +25,8 @@
     "sharp": "^0.32.0",
     "tough-cookie": "^4.1.4",
     "undici": "^6.19.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
   }
 }
