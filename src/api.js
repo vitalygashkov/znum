@@ -1,5 +1,5 @@
 import { getPageUrl, getTextBetween } from './utils.js';
-import { fetch } from './http.js';
+import { fetch, saveCookies } from './http.js';
 
 export const fetchDocumentInfo = async (documentUrl) => {
   const response = await fetch(documentUrl);
@@ -8,6 +8,7 @@ export const fetchDocumentInfo = async (documentUrl) => {
   const pagesCount = pagesAllText.replace(/^\D+/g, '');
   const keyString = getTextBetween(body, 'id="render-ver" type="hidden" value="', '"');
   const [cryptoKey, cryptoKeyId] = keyString.split(':');
+  await saveCookies();
   return { pagesCount: parseInt(pagesCount), cryptoKey, cryptoKeyId };
 };
 
