@@ -23,3 +23,8 @@ import { downloadImages } from './src/images.js';
   await convertImagesToPdf(images, output);
   await rm(imagesDir, { recursive: true, force: true });
 })();
+
+export * from './src/auth.js';
+export * from './src/api.js';
+export * from './src/images.js';
+export * from './src/pdf.js';
