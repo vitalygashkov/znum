@@ -34,8 +34,8 @@ export const fetch = async (resource, options) => {
     },
     http2: true,
     cookieJar,
-	timeout: {
-      request: 400000
+    timeout: {
+      request: 3 * 60 * 1000, // 3 минуты
     },
     retry: {
       limit: 5,
