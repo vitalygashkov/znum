@@ -1,4 +1,4 @@
-import { writeFile, mkdir, unlink, access } from 'node:fs/promises';
+import { writeFile, mkdir, unlink, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { joinImages } from 'join-images';
@@ -15,31 +15,33 @@ export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, c
   downloadProgress.start(pagesCount - currentPage + 1, 0);
   do {
     const output = join(dir, `page_${currentPage}.png`);
-    try {
-      await access(output);
+    const next = () => {
       pages.push(output);
       downloadProgress.update(currentPage);
-    } catch {
-      const token = createToken(documentId, currentPage, cryptoKey, cryptoKeyId);
-      const { statusText, slices, statusCode } = await fetchPage(documentId, currentPage, token);
-      if (statusText !== 'OK') {
-        error = statusText || statusCode;
-        console.error(`\nСтраница ${currentPage}. Ошибка: ${statusText || statusCode}`);
-      } else {
-        const sliceNames = slices.map((_, i) => `page_${currentPage}_${i}.png`);
-        const slicePaths = sliceNames.map((name) => join(dir, name));
-        await mkdir(dir, { recursive: true });
-        for (let i = 0; i < slices.length; i++) await writeFile(slicePaths[i], slices[i]);
-        const imageObject = await joinImages(slicePaths);
-        imageObject.toFile(output);
-        for (let i = 0; i < slices.length; i++) await unlink(slicePaths[i]);
-        pages.push(output);
-        downloadProgress.update(currentPage);
-      }
+      currentPage++;
+    };
+    const file = await stat(output).catch(() => null);
+    if (file) {
+      next();
+      continue;
+    }
+    const token = createToken(documentId, currentPage, cryptoKey, cryptoKeyId);
+    const { statusText, slices, statusCode } = await fetchPage(documentId, currentPage, token);
+    if (statusText !== 'OK') {
+      error = statusText || statusCode;
+      console.error(`\nСтраница ${currentPage}. Ошибка: ${statusText || statusCode}`);
+    } else {
+      const sliceNames = slices.map((_, i) => `page_${currentPage}_${i}.png`);
+      const slicePaths = sliceNames.map((name) => join(dir, name));
+      await mkdir(dir, { recursive: true });
+      for (let i = 0; i < slices.length; i++) await writeFile(slicePaths[i], slices[i]);
+      const imageObject = await joinImages(slicePaths);
+      imageObject.toFile(output);
+      for (let i = 0; i < slices.length; i++) await unlink(slicePaths[i]);
+      next();
+    }
     // Ожидание между запросами из-за ограничения частоты запросов (Rate Limiting) на стороне сервера (при превышении ошибка 503)
     await setTimeout(DELAY_BETWEEN_REQUESTS);
-    }
-    currentPage++;
   } while (!error && currentPage <= pagesCount);
   downloadProgress.stop();
   if (error) {
