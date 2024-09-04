@@ -1,9 +1,30 @@
 {
   "name": "znum",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "Vitaly Gashkov <vitalygashkov@vk.com>",
   "description": "Save books from Znanium for offline reading",
   "license": "AGPL-3.0",
+  "keywords": [
+    "pdf",
+    "books",
+    "download",
+    "znanium"
+  ],
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vitalygashkov/znum"
+  },
+  "bugs": {
+    "url": "https://github.com/vitalygashkov/znum/issues",
+    "email": "vitalygashkov@vk.com"
+  },
+  "funding": [
+    {
+      "type": "individual",
+      "url": "https://boosty.to/vitalygashkov/donate"
+    }
+  ],
   "type": "module",
   "main": "znum.js",
   "types": "znum.d.ts",
@@ -14,7 +35,6 @@
     "start": "node znum.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
   "dependencies": {
     "cli-progress": "^3.12.0",
     "got-scraping": "^4.0.6",
