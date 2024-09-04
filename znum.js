@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { join } from 'node:path';
 import { rm } from 'node:fs/promises';
 import { setTimeout } from 'node:timers/promises';
