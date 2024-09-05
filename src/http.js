@@ -5,9 +5,9 @@ import { setGlobalDispatcher } from 'undici';
 import { CookieAgent } from 'http-cookie-agent/undici';
 import { Cookie, CookieJar } from 'tough-cookie';
 import { gotScraping } from 'got-scraping';
-import { DEFAULT_URL } from './constants.js';
+import { DEFAULT_URL, WORK_DIR } from './constants.js';
 
-export const cookiePath = join(process.cwd(), 'cookies.json');
+export const cookiePath = join(WORK_DIR, 'cookies.json');
 export const cookieJar = new CookieJar();
 export const cookieAgent = new CookieAgent({ cookies: { jar: cookieJar } });
 setGlobalDispatcher(cookieAgent);

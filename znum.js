@@ -9,6 +9,7 @@ import { getTextBetween } from './src/utils.js';
 import { fetchDocumentInfo } from './src/api.js';
 import { convertImagesToPdf } from './src/pdf.js';
 import { downloadImages } from './src/images.js';
+import { WORK_DIR } from './src/constants.js';
 
 (async () => {
   await login();
@@ -17,11 +18,11 @@ import { downloadImages } from './src/images.js';
   console.log('Получение информации о книге...');
   const info = await fetchDocumentInfo(url);
   console.log('Скачивание изображений...');
-  const imagesDir = join(process.cwd(), 'downloads', id);
+  const imagesDir = join(WORK_DIR, id);
   const images = await downloadImages(imagesDir, id, info);
   await setTimeout(500);
   console.log('Конвертирование изображений в PDF...');
-  const output = join(process.cwd(), 'downloads', `${id}.pdf`);
+  const output = join(WORK_DIR, `${id}.pdf`);
   await convertImagesToPdf(images, output);
   await rm(imagesDir, { recursive: true, force: true });
 })();
