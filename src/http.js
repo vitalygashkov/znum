@@ -5,7 +5,7 @@ import { setGlobalDispatcher } from 'undici';
 import { CookieAgent } from 'http-cookie-agent/undici';
 import { Cookie, CookieJar } from 'tough-cookie';
 import { gotScraping } from 'got-scraping';
-import { DEFAULT_URL, WORK_DIR } from './constants.js';
+import { DEFAULT_URL, REQUEST_TIMEOUT, WORK_DIR } from './constants.js';
 
 export const cookiePath = join(WORK_DIR, 'cookies.json');
 export const cookieJar = new CookieJar();
@@ -20,7 +20,9 @@ export const loadCookies = async () => {
 };
 
 export const saveCookies = async () => {
-  const cookies = await cookieJar.getCookies(DEFAULT_URL).then((cookies) => cookies.map((cookie) => cookie.toString()));
+  const cookies = await cookieJar
+    .getCookies(DEFAULT_URL)
+    .then((cookies) => cookies.map((cookie) => cookie.toString()));
   await writeFile(cookiePath, JSON.stringify(cookies, null, 2));
 };
 
@@ -34,9 +36,7 @@ export const fetch = async (resource, options) => {
     },
     http2: true,
     cookieJar,
-    timeout: {
-      request: 3 * 60 * 1000, // 3 минуты
-    },
+    timeout: { request: REQUEST_TIMEOUT },
     retry: {
       limit: 5,
       methods: ['GET', 'POST'],
