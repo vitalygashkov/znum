@@ -31,6 +31,9 @@
   "bin": {
     "znum": "znum.js"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node znum.js",
     "test": "echo \"Error: no test specified\" && exit 1"
