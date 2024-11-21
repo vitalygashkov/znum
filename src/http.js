@@ -1,6 +1,6 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { setGlobalDispatcher } from 'undici';
 import { CookieAgent } from 'http-cookie-agent/undici';
 import { Cookie, CookieJar } from 'tough-cookie';
@@ -23,6 +23,7 @@ export const saveCookies = async () => {
   const cookies = await cookieJar
     .getCookies(DEFAULT_URL)
     .then((cookies) => cookies.map((cookie) => cookie.toString()));
+  if (!existsSync(dirname(cookiePath))) await mkdir(dirname(cookiePath), { recursive: true });
   await writeFile(cookiePath, JSON.stringify(cookies, null, 2));
 };
 

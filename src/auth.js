@@ -33,7 +33,8 @@ const openHomePage = async () => fetch(DEFAULT_URL);
 export const login = async (username, password) => {
   const success = await loadCookies();
   if (success) return;
-  const answer = username && password ? { username, password } : await prompt.get(['username', 'password']);
+  const answer =
+    username && password ? { username, password } : await prompt.get(['username', 'password']);
   console.log('Авторизация...');
   const { csrfToken } = await openLoginPage();
   await sendCredentials(answer.username, answer.password, csrfToken);
