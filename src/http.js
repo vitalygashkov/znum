@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, unlink, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { setGlobalDispatcher } from 'undici';
@@ -25,6 +25,10 @@ export const saveCookies = async () => {
     .then((cookies) => cookies.map((cookie) => cookie.toString()));
   if (!existsSync(dirname(cookiePath))) await mkdir(dirname(cookiePath), { recursive: true });
   await writeFile(cookiePath, JSON.stringify(cookies, null, 2));
+};
+
+export const removeCookies = async () => {
+  if (existsSync(cookiePath)) await unlink(cookiePath);
 };
 
 export const fetch = async (resource, options) => {
