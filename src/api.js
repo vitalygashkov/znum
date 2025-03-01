@@ -16,6 +16,7 @@ export const fetchPage = async (contentId, pageNumber, token) => {
   const pageUrl = getPageUrl(contentId, pageNumber);
   const response = await fetch(pageUrl, { headers: { authorization: `Bearer ${token}` } });
   const body = await response.text();
+  const status = getTextBetween(body, '<status>', '</status>');
   const statusText = getTextBetween(body, '<status_text>', '</status_text>');
   const slicesB64 = [];
   let currentSlice = 1;
@@ -28,5 +29,5 @@ export const fetchPage = async (contentId, pageNumber, token) => {
     } else currentSlice = -1;
   } while (currentSlice >= 1);
   const slices = slicesB64.map((data) => Buffer.from(data, 'base64'));
-  return { statusText, slices, statusCode: response.status };
+  return { statusText, status, slices, statusCode: response.status };
 };
