@@ -7,7 +7,8 @@ export const convertImagesToPdf = async (pages, output) => {
   const pdfProgress = new SingleBar({}, Presets.shades_classic);
   pdfProgress.start(pages.length, 0);
   const doc = new PDFDocument({ autoFirstPage: false });
-  doc.pipe(createWriteStream(output));
+  const writeStream = createWriteStream(output);
+  doc.pipe(writeStream);
   for (let i = 1; i <= pages.length; i++) {
     const page = pages[i - 1];
     if (!existsSync(page)) {
@@ -21,5 +22,7 @@ export const convertImagesToPdf = async (pages, output) => {
   }
   doc.end();
   pdfProgress.stop();
-  console.log(`Конвертирование завершено: ${output}`);
+  writeStream.on('finish', () => {
+    console.log(`Конвертирование завершено: ${output}`);
+  });
 };
