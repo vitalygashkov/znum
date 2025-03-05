@@ -1,6 +1,6 @@
 {
   "name": "znum",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Vitaly Gashkov <vitalygashkov@vk.com>",
   "description": "Save books from Znanium for offline reading",
   "license": "MIT",
@@ -48,17 +48,17 @@
   },
   "dependencies": {
     "cli-progress": "^3.12.0",
-    "got-scraping": "^4.0.8",
-    "http-cookie-agent": "^6.0.6",
+    "got-scraping": "^4.1.1",
+    "http-cookie-agent": "^6.0.8",
     "join-images": "^1.1.5",
-    "pdfkit": "^0.15.1",
+    "pdfkit": "^0.16.0",
     "prompt": "^1.3.0",
-    "sharp": "^0.32.6",
-    "tough-cookie": "^4.1.4",
-    "undici": "^6.21.0"
+    "sharp": "^0.33.5",
+    "tough-cookie": "^5.1.2",
+    "undici": "^7.4.0"
   },
   "devDependencies": {
-    "prettier": "^3.3.3",
-    "typescript": "^5.6.3"
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
   }
 }
