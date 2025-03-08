@@ -15,5 +15,10 @@ export const args = parseArgs({
       short: 'p',
       type: 'string',
     },
+    delay: {
+      short: 'd',
+      type: 'string',
+      default: '1',
+    },
   },
 });

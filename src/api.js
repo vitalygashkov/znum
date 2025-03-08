@@ -30,5 +30,6 @@ export const fetchPage = async (contentId, pageNumber, token) => {
     } else currentSlice = -1;
   } while (currentSlice >= 1);
   const slices = slicesB64.map((data) => Buffer.from(data, 'base64'));
+  await saveCookies();
   return { statusText, status, slices, statusCode: response.status };
 };
