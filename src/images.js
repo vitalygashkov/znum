@@ -6,7 +6,7 @@ import { SingleBar, Presets } from 'cli-progress';
 import { createToken } from './token.js';
 import { fetchPage } from './api.js';
 import { DELAY_BETWEEN_REQUESTS } from './constants.js';
-import { removeCookies } from './http.js';
+import { logout } from './auth.js';
 
 export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, cryptoKeyId }) => {
   let error = '';
@@ -31,7 +31,7 @@ export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, c
     if (statusText !== 'OK') {
       error = statusText || statusCode;
       console.error(`\nСтраница ${currentPage}. Ошибка: ${statusText || statusCode}`);
-      if (error.includes('Ошибка авторизации')) removeCookies();
+      if (error.includes('Ошибка авторизации')) await logout();
     } else {
       const sliceNames = slices.map((_, i) => `page_${currentPage}_${i}.png`);
       const slicePaths = sliceNames.map((name) => join(dir, name));

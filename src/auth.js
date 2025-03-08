@@ -1,7 +1,9 @@
 import prompt from 'prompt';
 import { DEFAULT_URL } from './constants.js';
 import { getTextBetween } from './utils.js';
-import { fetch, loadCookies, saveCookies } from './http.js';
+import { fetch } from './http.js';
+import { loadCookies, removeCookies, saveCookies } from './cookies.js';
+import { args } from './args.js';
 
 const openLoginPage = async () => {
   const response = await fetch('https://znanium.ru/site/login');
@@ -13,7 +15,7 @@ const openLoginPage = async () => {
 const sendCredentials = async (username, password, csrfToken) => {
   return fetch('https://znanium.ru/site/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       '_csrf-frontend': csrfToken,
       'LoginForm[username]': username,
@@ -30,7 +32,7 @@ const sendCredentials = async (username, password, csrfToken) => {
 
 const openHomePage = async () => fetch(DEFAULT_URL);
 
-export const login = async (username, password) => {
+export const login = async (username = args.values.username, password = args.values.password) => {
   const success = await loadCookies();
   if (success) return;
   const answer =
@@ -40,4 +42,9 @@ export const login = async (username, password) => {
   await sendCredentials(answer.username, answer.password, csrfToken);
   await openHomePage();
   await saveCookies();
+};
+
+export const logout = async () => {
+  await fetch('https://znanium.ru/site/logout');
+  removeCookies();
 };

@@ -1,5 +1,6 @@
 import { getPageUrl, getTextBetween } from './utils.js';
-import { fetch, saveCookies } from './http.js';
+import { fetch } from './http.js';
+import { saveCookies } from './cookies.js';
 
 export const fetchDocumentInfo = async (documentUrl) => {
   const response = await fetch(documentUrl);

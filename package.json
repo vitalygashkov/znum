@@ -49,13 +49,11 @@
   "dependencies": {
     "cli-progress": "^3.12.0",
     "got-scraping": "^4.1.1",
-    "http-cookie-agent": "^6.0.8",
     "join-images": "^1.1.5",
     "pdfkit": "^0.16.0",
     "prompt": "^1.3.0",
-    "sharp": "^0.33.5",
-    "tough-cookie": "^5.1.2",
-    "undici": "^7.4.0"
+    "sharp": "^0.32.6",
+    "tough-cookie": "^5.1.2"
   },
   "devDependencies": {
     "prettier": "^3.5.3",

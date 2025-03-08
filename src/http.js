@@ -1,37 +1,18 @@
-import { readFile, writeFile, unlink, mkdir } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { setGlobalDispatcher } from 'undici';
-import { CookieAgent } from 'http-cookie-agent/undici';
-import { Cookie, CookieJar } from 'tough-cookie';
 import { gotScraping } from 'got-scraping';
-import { DEFAULT_URL, REQUEST_TIMEOUT, WORK_DIR } from './constants.js';
+import { cookieJar } from './cookies.js';
+import { REQUEST_TIMEOUT } from './constants.js';
 
-export const cookiePath = join(WORK_DIR, 'cookies.json');
-export const cookieJar = new CookieJar();
-export const cookieAgent = new CookieAgent({ cookies: { jar: cookieJar } });
-setGlobalDispatcher(cookieAgent);
-
-export const loadCookies = async () => {
-  if (!existsSync(cookiePath)) return false;
-  const data = await readFile(cookiePath, 'utf-8').then((data) => JSON.parse(data));
-  for (const cookie of data) await cookieJar.setCookie(Cookie.parse(cookie), DEFAULT_URL);
-  return true;
+const parseHeaders = (response) => {
+  const headers = new Headers();
+  for (const [key, value] of Object.entries(response.headers)) {
+    if (!value || typeof value !== 'string') continue;
+    headers.append(key, value);
+  }
+  for (const cookie of response.headers['set-cookie'] || []) headers.append('set-cookie', cookie);
+  return headers;
 };
 
-export const saveCookies = async () => {
-  const cookies = await cookieJar
-    .getCookies(DEFAULT_URL)
-    .then((cookies) => cookies.map((cookie) => cookie.toString()));
-  if (!existsSync(dirname(cookiePath))) await mkdir(dirname(cookiePath), { recursive: true });
-  await writeFile(cookiePath, JSON.stringify(cookies, null, 2));
-};
-
-export const removeCookies = async () => {
-  if (existsSync(cookiePath)) await unlink(cookiePath);
-};
-
-export const fetch = async (resource, options) => {
+const fetchViaGot = async (resource, options = {}) => {
   const response = await gotScraping({
     url: resource,
     useHeaderGenerator: true,
@@ -40,23 +21,18 @@ export const fetch = async (resource, options) => {
       operatingSystems: [process.platform === 'win32' ? 'windows' : 'macos'],
     },
     http2: true,
-    cookieJar,
     timeout: { request: REQUEST_TIMEOUT },
     retry: {
       limit: 5,
       methods: ['GET', 'POST'],
       statusCodes: [408, 429, 500, 502, 503, 504],
     },
+    cookieJar,
     ...options,
   });
-  const headers = new Headers();
-  for (const [key, value] of Object.entries(response.headers)) {
-    if (!value || typeof value !== 'string') continue;
-    headers.append(key, value);
-  }
-  for (const cookie of response.headers['set-cookie'] || []) headers.append('set-cookie', cookie);
-  return new Response(response.rawBody, {
-    headers: headers,
-    status: response.statusCode,
-  });
+  const headers = parseHeaders(response);
+  const status = response.statusCode;
+  return new Response(response.rawBody, { headers, status });
 };
+
+export const fetch = fetchViaGot;
