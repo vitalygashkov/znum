@@ -14,7 +14,7 @@ import { args } from './src/args.js';
 
 (async () => {
   await login();
-  const { url } = args.values.link || args.positionals[0] || (await prompt.get(['url']));
+  const url = args.values.link || args.positionals[0] || (await prompt.get(['url'])).url;
   const id = getTextBetween(url, 'id=', '&');
   console.log('Получение информации о книге...');
   const readerUrl = url.includes('read') ? url : `https://znanium.ru/read?id=${id}`;

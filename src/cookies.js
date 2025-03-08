@@ -18,7 +18,6 @@ export const saveCookies = async () => {
   const cookies = await cookieJar
     .getCookies(DEFAULT_URL)
     .then((cookies) => cookies.map((cookie) => cookie.toJSON()));
-  console.log(cookies);
   if (!existsSync(dirname(cookiePath))) await mkdir(dirname(cookiePath), { recursive: true });
   await writeFile(cookiePath, JSON.stringify(cookies, null, 2));
 };
