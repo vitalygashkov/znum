@@ -10,10 +10,11 @@ import { fetchDocumentInfo } from './src/api.js';
 import { convertImagesToPdf } from './src/pdf.js';
 import { downloadImages } from './src/images.js';
 import { WORK_DIR } from './src/constants.js';
+import { args } from './src/args.js';
 
 (async () => {
   await login();
-  const { url } = await prompt.get(['url']);
+  const { url } = args.values.link || args.positionals[0] || (await prompt.get(['url']));
   const id = getTextBetween(url, 'id=', '&');
   console.log('Получение информации о книге...');
   const readerUrl = url.includes('read') ? url : `https://znanium.ru/read?id=${id}`;
