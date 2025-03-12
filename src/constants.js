@@ -1,6 +1,6 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { args } from './args';
+import { args } from './args.js';
 
 export const DEFAULT_URL = 'https://znanium.ru/';
 export const DELAY_BETWEEN_REQUESTS = Number(args.values.delay) * 1000; // 1 секунда
