@@ -13,17 +13,11 @@ import { logout } from './auth.js';
 import { getTextBetween } from './utils.js';
 
 export const toJpeg = async (inputBuffer) => {
-  return sharp(inputBuffer)
-    .jpeg()
+  return sharp(inputBuffer, { density: 200 })
+    .flatten({ background: '#FFFFFF' })
+    .jpeg({ mozjpeg: true })
     .toBuffer()
     .catch(() => console.error(`Ошибка конвертации в JPEG`));
-};
-
-export const toPng = async (inputBuffer) => {
-  return sharp(inputBuffer, { density: 300 })
-    .png()
-    .toBuffer()
-    .catch(() => console.error(`Ошибка конвертации в PNG`));
 };
 
 export const decryptSvg = (encryptedSVG, cryptoKey) => {
@@ -57,13 +51,14 @@ export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, c
   const downloadProgress = new SingleBar({}, Presets.shades_classic);
   downloadProgress.start(pagesCount - currentPage + 1, 0);
   do {
-    const output = join(dir, `page_${currentPage}.png`);
+    const pageFilename = `page_${currentPage}.jpeg`;
+    const pageFilepath = join(dir, pageFilename);
     const next = () => {
-      pages.push(output);
+      pages.push(pageFilepath);
       downloadProgress.update(currentPage);
       currentPage++;
     };
-    const file = await stat(output).catch(() => null);
+    const file = await stat(pageFilepath).catch(() => null);
     if (file) {
       next();
       continue;
@@ -80,7 +75,7 @@ export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, c
       await mkdir(dir, { recursive: true });
       for (let i = 0; i < slices.length; i++) await writeFile(slicePaths[i], slices[i]);
       const imageObject = await joinImages(slicePaths);
-      imageObject.toFile(output);
+      imageObject.toFile(pageFilepath);
       for (let i = 0; i < slices.length; i++) await unlink(slicePaths[i]);
       next();
     } else if (svg) {
@@ -91,7 +86,8 @@ export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, c
       for (const partWithImage of decryptedSvg.split('<image').slice(1)) {
         const webpStart = `data:image/webp;base64,`;
         const webpEnd = `">`;
-        const webpBase64 = getTextBetween(partWithImage, webpStart, webpEnd);
+        const webpBase64 = getTextBetween(partWithImage, webpStart, webpEnd)?.trim();
+        if (!webpBase64) continue;
         const jpeg = await toJpeg(Buffer.from(webpBase64, 'base64'));
         const jpegStart = webpStart.replace('webp', 'jpeg');
         const startIndex = partWithImage.indexOf(webpStart);
@@ -102,9 +98,8 @@ export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, c
         );
       }
 
-      const pngPath = join(dir, `page_${currentPage}.png`);
-      const png = await toPng(Buffer.from(decryptedSvg, 'utf-8'));
-      await writeFile(pngPath, png);
+      const pageData = await toJpeg(Buffer.from(decryptedSvg, 'utf-8'));
+      await writeFile(pageFilepath, pageData);
       next();
     }
     // Ожидание между запросами из-за ограничения частоты запросов (Rate Limiting) на стороне сервера (при превышении ошибка 503)
