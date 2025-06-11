@@ -1,4 +1,4 @@
-import prompt from 'prompt';
+import { input } from '@inquirer/prompts';
 import { DEFAULT_URL } from './constants.js';
 import { getTextBetween } from './utils.js';
 import { fetch } from './http.js';
@@ -35,8 +35,14 @@ const openHomePage = async () => fetch(DEFAULT_URL);
 export const login = async (username = args.values.username, password = args.values.password) => {
   const success = await loadCookies();
   if (success) return;
-  const answer =
-    username && password ? { username, password } : await prompt.get(['username', 'password']);
+  const answer = { username: '', password: '' };
+  if (username && password) {
+    answer.username = username;
+    answer.password = password;
+  } else {
+    answer.username = await input({ message: 'Логин' });
+    answer.password = await input({ message: 'Пароль' });
+  }
   console.log('Авторизация...');
   const { csrfToken } = await openLoginPage();
   await sendCredentials(answer.username, answer.password, csrfToken);

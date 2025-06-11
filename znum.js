@@ -3,7 +3,7 @@
 import { join } from 'node:path';
 import { rm } from 'node:fs/promises';
 import { setTimeout } from 'node:timers/promises';
-import prompt from 'prompt';
+import { input } from '@inquirer/prompts';
 import { login } from './src/auth.js';
 import { getTextBetween } from './src/utils.js';
 import { fetchDocumentInfo } from './src/api.js';
@@ -14,7 +14,8 @@ import { args } from './src/args.js';
 
 (async () => {
   await login();
-  const url = args.values.link || args.positionals[0] || (await prompt.get(['url'])).url;
+  const url =
+    args.values.link || args.positionals[0] || (await input({ message: 'Ссылка на книгу' }));
   const id = getTextBetween(url, 'id=', '&');
   console.log('Получение информации о книге...');
   const readerUrl = url.includes('read') ? url : `https://znanium.ru/read?id=${id}`;
