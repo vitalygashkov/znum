@@ -15,17 +15,17 @@ import { args } from './src/args.js';
 (async () => {
   await login();
   const url =
-    args.values.link || args.positionals[0] || (await input({ message: 'Ссылка на книгу' }));
+    args.values.link || args.positionals[0] || (await input({ message: 'Вставь ссылку сюда' }));
   const id = getTextBetween(url, 'id=', '&');
-  console.log('Получение информации о книге...');
+  console.log('Получение информации...');
   const readerUrl = url.includes('read') ? url : `https://znanium.ru/read?id=${id}`;
   const info = await fetchDocumentInfo(readerUrl);
-  console.log('Скачивание изображений...');
+  console.log('Скачивание страниц...');
   const imagesDir = join(WORK_DIR, id);
   const images = await downloadImages(imagesDir, id, info);
   await setTimeout(500);
-  console.log('Конвертирование изображений в PDF...');
   const output = join(WORK_DIR, `${id}.pdf`);
+  console.log('Сборка страниц в PDF...');
   await convertImagesToPdf(images, output);
   await rm(imagesDir, { recursive: true, force: true });
 })();
