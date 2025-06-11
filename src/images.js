@@ -91,7 +91,8 @@ export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, c
       for (const partWithImage of decryptedSvg.split('<image').slice(1)) {
         const webpStart = `data:image/webp;base64,`;
         const webpEnd = `">`;
-        const webpBase64 = getTextBetween(partWithImage, webpStart, webpEnd);
+        const webpBase64 = getTextBetween(partWithImage, webpStart, webpEnd)?.trim();
+        if (!webpBase64) continue;
         const jpeg = await toJpeg(Buffer.from(webpBase64, 'base64'));
         const jpegStart = webpStart.replace('webp', 'jpeg');
         const startIndex = partWithImage.indexOf(webpStart);
