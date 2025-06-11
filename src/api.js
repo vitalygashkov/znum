@@ -1,4 +1,4 @@
-import { getPageUrl, getTextBetween } from './utils.js';
+import { getTextBetween } from './utils.js';
 import { fetch } from './http.js';
 import { saveCookies } from './cookies.js';
 
@@ -13,12 +13,17 @@ export const fetchDocumentInfo = async (documentUrl) => {
   return { pagesCount: parseInt(pagesCount), cryptoKey, cryptoKeyId };
 };
 
+const getPageUrl = (contentId, pageNumber, format = 'svg') =>
+  `https://znanium.ru/read/page?doc=${contentId}&page=${pageNumber}&current=${pageNumber}&d=&t=${format}`;
+
 export const fetchPage = async (contentId, pageNumber, token) => {
   const pageUrl = getPageUrl(contentId, pageNumber);
   const response = await fetch(pageUrl, { headers: { authorization: `Bearer ${token}` } });
   const body = await response.text();
   const status = getTextBetween(body, '<status>', '</status>');
   const statusText = getTextBetween(body, '<status_text>', '</status_text>');
+  const svgBody = getTextBetween(body, `<svg`, `</svg>`);
+  const svg = svgBody ? `<svg${svgBody}</svg>` : null;
   const slicesB64 = [];
   let currentSlice = 1;
   do {
@@ -31,5 +36,5 @@ export const fetchPage = async (contentId, pageNumber, token) => {
   } while (currentSlice >= 1);
   const slices = slicesB64.map((data) => Buffer.from(data, 'base64'));
   await saveCookies();
-  return { statusText, status, slices, statusCode: response.status };
+  return { statusText, status, statusCode: response.status, slices, svg, body };
 };
