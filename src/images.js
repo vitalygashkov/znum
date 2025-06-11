@@ -1,12 +1,54 @@
 import { writeFile, mkdir, unlink, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
+
+import sharp from 'sharp';
 import { joinImages } from 'join-images';
 import { SingleBar, Presets } from 'cli-progress';
+
 import { createToken } from './token.js';
 import { fetchPage } from './api.js';
 import { DELAY_BETWEEN_REQUESTS } from './constants.js';
 import { logout } from './auth.js';
+import { getTextBetween } from './utils.js';
+
+export const toJpeg = async (inputBuffer) => {
+  return sharp(inputBuffer)
+    .jpeg()
+    .toBuffer()
+    .catch(() => console.error(`Ошибка конвертации в JPEG`));
+};
+
+export const toPng = async (inputBuffer) => {
+  return sharp(inputBuffer, { density: 300 })
+    .png()
+    .toBuffer()
+    .catch(() => console.error(`Ошибка конвертации в PNG`));
+};
+
+export const decryptSvg = (encryptedSVG, cryptoKey) => {
+  let digitOrd = { 0: 48, 1: 49, 2: 50, 3: 51, 4: 52, 5: 53, 6: 54, 7: 55, 8: 56, 9: 57 };
+  let digitChr = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  let key = Array.from(cryptoKey)
+    .map((c) => c.charCodeAt(0))
+    .join('');
+  let e = key.length,
+    h = 0,
+    decrypted = '',
+    startDecrypt = false;
+  for (const char of encryptedSVG) {
+    if (char in digitOrd && startDecrypt) {
+      let r = parseInt(char, 10) - parseInt(key[h], 10);
+      if (r < 0) r += 10;
+      decrypted += digitChr[r];
+      h = (h + 1) % e;
+    } else {
+      decrypted += char;
+      if (char === '>') startDecrypt = true;
+    }
+  }
+  return decrypted;
+};
 
 export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, cryptoKeyId }) => {
   let error = '';
@@ -27,12 +69,12 @@ export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, c
       continue;
     }
     const token = createToken(documentId, currentPage, cryptoKey, cryptoKeyId);
-    const { statusText, slices, statusCode } = await fetchPage(documentId, currentPage, token);
+    const { statusText, slices, svg, statusCode } = await fetchPage(documentId, currentPage, token);
     if (statusText !== 'OK') {
       error = statusText || statusCode;
       console.error(`\nСтраница ${currentPage}. Ошибка: ${statusText || statusCode}`);
       if (error.includes('Ошибка авторизации')) await logout();
-    } else {
+    } else if (slices.length) {
       const sliceNames = slices.map((_, i) => `page_${currentPage}_${i}.png`);
       const slicePaths = sliceNames.map((name) => join(dir, name));
       await mkdir(dir, { recursive: true });
@@ -40,6 +82,29 @@ export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, c
       const imageObject = await joinImages(slicePaths);
       imageObject.toFile(output);
       for (let i = 0; i < slices.length; i++) await unlink(slicePaths[i]);
+      next();
+    } else if (svg) {
+      await mkdir(dir, { recursive: true });
+      let decryptedSvg = decryptSvg(svg, cryptoKey);
+
+      // Конвертируем встроенные WEBP в JPEG для дальнейшей корректной конвертации из SVG в PNG
+      for (const partWithImage of decryptedSvg.split('<image').slice(1)) {
+        const webpStart = `data:image/webp;base64,`;
+        const webpEnd = `">`;
+        const webpBase64 = getTextBetween(partWithImage, webpStart, webpEnd);
+        const jpeg = await toJpeg(Buffer.from(webpBase64, 'base64'));
+        const jpegStart = webpStart.replace('webp', 'jpeg');
+        const startIndex = partWithImage.indexOf(webpStart);
+        const endIndex = startIndex + webpStart.length + webpBase64.length + webpEnd.length;
+        decryptedSvg = decryptedSvg.replace(
+          partWithImage.slice(startIndex, endIndex),
+          `${jpegStart}${jpeg.toString('base64')}${webpEnd}`
+        );
+      }
+
+      const pngPath = join(dir, `page_${currentPage}.png`);
+      const png = await toPng(Buffer.from(decryptedSvg, 'utf-8'));
+      await writeFile(pngPath, png);
       next();
     }
     // Ожидание между запросами из-за ограничения частоты запросов (Rate Limiting) на стороне сервера (при превышении ошибка 503)
