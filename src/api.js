@@ -22,8 +22,8 @@ export const fetchPage = async (contentId, pageNumber, token) => {
   const body = await response.text();
   const status = getTextBetween(body, '<status>', '</status>');
   const statusText = getTextBetween(body, '<status_text>', '</status_text>');
-  const svgBody = getTextBetween(body, `<svg`, `</svg>`);
-  const svg = svgBody ? `<svg${svgBody}</svg>` : null;
+  const svgBody = getTextBetween(body, `CDATA[<?xml`, `</svg>`);
+  const svg = svgBody ? `<?xml${svgBody}</svg>` : null;
   const slicesB64 = [];
   let currentSlice = 1;
   do {
