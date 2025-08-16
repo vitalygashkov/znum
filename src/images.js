@@ -17,7 +17,10 @@ export const toJpeg = async (inputBuffer) => {
     .flatten({ background: '#FFFFFF' })
     .jpeg({ mozjpeg: true })
     .toBuffer()
-    .catch(() => console.error(`Ошибка конвертации в JPEG`));
+    .catch((e) => {
+      console.error(`\nОшибка конвертации в JPEG`);
+      throw e;
+    });
 };
 
 export const decryptSvg = (encryptedSVG, cryptoKey) => {
@@ -85,7 +88,7 @@ export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, c
       // Конвертируем встроенные WEBP в JPEG для дальнейшей корректной конвертации из SVG в PNG
       for (const partWithImage of decryptedSvg.split('<image').slice(1)) {
         const webpStart = `data:image/webp;base64,`;
-        const webpEnd = `">`;
+        const webpEnd = `"/>`;
         const webpBase64 = getTextBetween(partWithImage, webpStart, webpEnd)?.trim();
         if (!webpBase64) continue;
         const jpeg = await toJpeg(Buffer.from(webpBase64, 'base64'));
@@ -99,6 +102,7 @@ export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, c
       }
 
       const pageData = await toJpeg(Buffer.from(decryptedSvg, 'utf-8'));
+      if (!pageData) throw new Error('Не удалось сохранить страницу');
       await writeFile(pageFilepath, pageData);
       next();
     }
