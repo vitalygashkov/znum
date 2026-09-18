@@ -11,7 +11,7 @@
 
 ## Первоначальная настройка
 
-- Скачай и установи [Node.js](https://nodejs.org/en/download/)
+- Скачай и установи [Node.js](https://nodejs.org/en/download/) (версия 24 или новее)
 
 ## Использование
 

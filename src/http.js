@@ -32,7 +32,10 @@ const fetchViaGot = async (resource, options = {}) => {
   });
   const headers = parseHeaders(response);
   const status = response.statusCode;
-  return new Response(response.rawBody, { headers, status });
+  const res = new Response(response.rawBody, { headers, status });
+  Object.defineProperty(res, 'url', { value: response.url });
+  Object.defineProperty(res, 'statusCode', { value: status });
+  return res;
 };
 
 export const fetch = fetchViaGot;
