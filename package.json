@@ -47,17 +47,17 @@
     "test": "node --test --watch"
   },
   "dependencies": {
-    "@inquirer/prompts": "^7.8.2",
+    "@inquirer/prompts": "^8.7.2",
     "cli-progress": "^3.12.0",
-    "got-scraping": "^4.1.1",
-    "join-images": "^1.1.5",
-    "pdfkit": "^0.17.1",
-    "sharp": "^0.32.6",
-    "tough-cookie": "^5.1.2"
+    "got-scraping": "^4.2.1",
+    "join-images": "^1.5.0",
+    "pdfkit": "^0.20.2",
+    "sharp": "^0.35.4",
+    "tough-cookie": "^6.0.2"
   },
   "devDependencies": {
-    "@types/node": "^24.3.0",
-    "prettier": "^3.6.2",
-    "typescript": "^5.9.2"
+    "@types/node": "^26.6.1",
+    "prettier": "^3.9.8",
+    "typescript": "^5.9.3"
   }
 }

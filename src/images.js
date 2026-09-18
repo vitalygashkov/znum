@@ -6,7 +6,6 @@ import sharp from 'sharp';
 import { joinImages } from 'join-images';
 import { SingleBar, Presets } from 'cli-progress';
 
-import { createToken } from './token.js';
 import { fetchPage } from './api.js';
 import { DELAY_BETWEEN_REQUESTS } from './constants.js';
 import { logout } from './auth.js';
@@ -47,7 +46,14 @@ export const decryptSvg = (encryptedSVG, cryptoKey) => {
   return decrypted;
 };
 
-export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, cryptoKeyId }) => {
+export const downloadImages = async (dir, documentId, info) => {
+  const { pagesCount } = info;
+  const secret = {
+    cryptoKey: info.cryptoKey,
+    cryptoKeyId: info.cryptoKeyId,
+    syncTime: info.syncTime,
+    fontVariant: info.fontVariant,
+  };
   let error = '';
   let currentPage = 1;
   const pages = [];
@@ -66,11 +72,14 @@ export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, c
       next();
       continue;
     }
-    const token = createToken(documentId, currentPage, cryptoKey, cryptoKeyId);
-    const { statusText, slices, svg, statusCode } = await fetchPage(documentId, currentPage, token);
+    const { statusText, slices, svg, decryptKey } = await fetchPage(
+      documentId,
+      currentPage,
+      secret
+    );
     if (statusText !== 'OK') {
-      error = statusText || statusCode;
-      console.error(`\nСтраница ${currentPage}. Ошибка: ${statusText || statusCode}`);
+      error = statusText;
+      console.error(`\nСтраница ${currentPage}. Ошибка: ${statusText}`);
       if (error.includes('Ошибка авторизации')) await logout();
     } else if (slices.length) {
       const sliceNames = slices.map((_, i) => `page_${currentPage}_${i}.png`);
@@ -83,7 +92,7 @@ export const downloadImages = async (dir, documentId, { pagesCount, cryptoKey, c
       next();
     } else if (svg) {
       await mkdir(dir, { recursive: true });
-      let decryptedSvg = decryptSvg(svg, cryptoKey);
+      let decryptedSvg = decryptSvg(svg, decryptKey);
 
       // Конвертируем встроенные WEBP в JPEG для дальнейшей корректной конвертации из SVG в PNG
       for (const partWithImage of decryptedSvg.split('<image').slice(1)) {

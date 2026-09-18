@@ -1,9 +1,15 @@
 import { createHmac } from 'node:crypto';
 
-export const createToken = (documentId, pageNumber, cryptoKey, cryptoKeyId, t) => {
+export const createToken = (
+  documentId,
+  pageNumber,
+  cryptoKey,
+  cryptoKeyId,
+  { syncTime, fontVariant } = {}
+) => {
   const timestamp = Math.floor(Date.now() / 1000);
-  const timeSyncDelta = 1;
-  const secLog = `init(time:${timestamp},serverTime:${timestamp},key:${cryptoKey},id:${cryptoKeyId},${cryptoKey}:${cryptoKeyId});`;
+  const serverTime = syncTime ? parseInt(syncTime, 10) : timestamp;
+  const timeSyncDelta = timestamp - serverTime;
   const headerString = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64');
   const time = timestamp - timeSyncDelta;
   const key = cryptoKey || 'a1b2c3d4e5';
@@ -17,8 +23,12 @@ export const createToken = (documentId, pageNumber, cryptoKey, cryptoKeyId, t) =
     secid: cryptoKeyId,
     localTime: timestamp,
     deltaTime: timeSyncDelta,
-    log: secLog,
-    case: t ? 1 : 0,
+    case: 0,
+    readerToken: '',
+    readerType: 'svg',
+    purpose: 'reader',
+    fv: fontVariant || null,
+    debug: '0',
   };
   const bodyString = Buffer.from(JSON.stringify(body)).toString('base64');
   const hmac = createHmac('sha256', key);
