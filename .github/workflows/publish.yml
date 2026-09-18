@@ -1,9 +1,14 @@
 name: Publish
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - 'v*'
+
+permissions:
+  id-token: write
+  contents: write
 
 jobs:
   publish:
@@ -23,5 +28,3 @@ jobs:
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
-permissions:
-  contents: write
