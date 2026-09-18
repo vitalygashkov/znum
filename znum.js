@@ -25,7 +25,7 @@ import { args } from './src/args.js';
   } catch (e) {
     if (!(e instanceof NotAuthorizedError)) throw e;
     // Сохранённые cookie протухли — логинимся заново
-    removeCookies();
+    await removeCookies();
     await login();
     info = await fetchDocumentInfo(readerUrl);
   }

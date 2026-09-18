@@ -14,8 +14,12 @@ const openLoginPage = async () => {
   const body = await response.text();
   const csrfToken = getTextBetween(body, 'name="csrf-token" content="', '"');
   const formAction = getTextBetween(body, '<form id="login-form" action="', '"');
-  const loginUrl = new URL(formAction || '/site/login', DEFAULT_URL).toString();
-  return { csrfToken, loginUrl };
+  const loginUrl = new URL(formAction || '/site/login', DEFAULT_URL);
+  // Не отправляем учётные данные на сторонний origin, даже если action подменён
+  if (loginUrl.origin !== new URL(DEFAULT_URL).origin) {
+    throw new LoginError('Форма входа указывает на сторонний адрес, отмена авторизации');
+  }
+  return { csrfToken, loginUrl: loginUrl.toString() };
 };
 
 const sendCredentials = async (username, password, csrfToken, loginUrl) => {
@@ -58,7 +62,7 @@ export const login = async (username = args.values.username, password = args.val
   const body = await response.text();
   if (String(response.url).includes('/site/login')) {
     const error = getTextBetween(body, 'help-block help-block-error">', '</p>')?.trim();
-    removeCookies();
+    await removeCookies();
     throw new LoginError(error || 'Не удалось авторизоваться: проверь логин и пароль');
   }
   await saveCookies();

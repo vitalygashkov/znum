@@ -1,3 +1,7 @@
+export class LoginError extends Error {}
+
+export class NotAuthorizedError extends Error {}
+
 export const login: (username?: string, password?: string) => Promise<void>;
 
 export const fetchDocumentInfo: (documentUrl: string) => Promise<{
@@ -24,6 +28,7 @@ export const fetchPage: (
   slices: Buffer[];
   svg: string | null;
   decryptKey: string;
+  body: string;
 }>;
 
 export const downloadImages: (

@@ -72,15 +72,15 @@ export const downloadImages = async (dir, documentId, info) => {
       next();
       continue;
     }
-    const { statusText, slices, svg, decryptKey } = await fetchPage(
+    const { statusText, slices, svg, decryptKey, statusCode } = await fetchPage(
       documentId,
       currentPage,
       secret
     );
     if (statusText !== 'OK') {
-      error = statusText;
-      console.error(`\nСтраница ${currentPage}. Ошибка: ${statusText}`);
-      if (error.includes('Ошибка авторизации')) await logout();
+      error = statusText || statusCode;
+      console.error(`\nСтраница ${currentPage}. Ошибка: ${statusText || statusCode}`);
+      if (error.includes && error.includes('Ошибка авторизации')) await logout();
     } else if (slices.length) {
       const sliceNames = slices.map((_, i) => `page_${currentPage}_${i}.png`);
       const slicePaths = sliceNames.map((name) => join(dir, name));
